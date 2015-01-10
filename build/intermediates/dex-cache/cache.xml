@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/DiskDocuments/Android/SDK/android-sdk-macosx/extras/android/m2repository/com/android/support/support-annotations/21.0.3/support-annotations-21.0.3.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="4b74cefe1f0c1b819e7260c8627a14674e37fd35">
+        <dex dex="/DiskDocuments/Android/Workspace/KRTimer/app/build/intermediates/pre-dexed/debug/support-annotations-21.0.3-b0f870ec5745251fe1fd04b3a328368fe0c8cb67.jar" />
+    </item>
+    <item
+        jar="/DiskDocuments/Android/Workspace/KRTimer/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/21.0.3/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="81d42bf983a8741f4888a6e333e454e4a5e0eeb7">
+        <dex dex="/DiskDocuments/Android/Workspace/KRTimer/app/build/intermediates/pre-dexed/debug/classes-ad842206593afe681c731d8983c9fcede6469db3.jar" />
+    </item>
+    <item
+        jar="/DiskDocuments/Android/Workspace/KRTimer/app/build/intermediates/exploded-aar/com.android.support/support-v4/21.0.3/libs/internal_impl-21.0.3.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="01ec05bfbafcc07646ba813000bf2ef11742dd03">
+        <dex dex="/DiskDocuments/Android/Workspace/KRTimer/app/build/intermediates/pre-dexed/debug/internal_impl-21.0.3-90545160cd26740a419140602315f857b6b5a54a.jar" />
+    </item>
+    <item
+        jar="/DiskDocuments/Android/Workspace/KRTimer/app/build/intermediates/exploded-aar/com.android.support/support-v4/21.0.3/classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="2c91c949a45a21cdecf26e03951e46c7beec9ad8">
+        <dex dex="/DiskDocuments/Android/Workspace/KRTimer/app/build/intermediates/pre-dexed/debug/classes-2d29a75d949bd61d4af36bbfa9ecd5664669177a.jar" />
+    </item>
+
+</items>
