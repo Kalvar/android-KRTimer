@@ -4,6 +4,8 @@ android-KRTimer
 Simplely use timer and implement block methods.
 
 ``` java
+import pers.kalvar.tools.timer.*;
+
 final KRTimer krTimer = new KRTimer();
 krTimer.processBlock  = new KRTimer.ProcessBlock()
 {
