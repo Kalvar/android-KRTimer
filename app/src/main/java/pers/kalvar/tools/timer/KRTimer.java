@@ -1,4 +1,4 @@
-/**
+/*
  * @ Notice
  *  - package have to front import method.
  * */
@@ -8,7 +8,6 @@ import android.os.Handler;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
 /**
  * Created by Kalvar on 15/1/10.
  */
@@ -16,92 +15,84 @@ public class KRTimer
 {
     /*
     * @ Notes
-    *   - synchronized = to lock the resource ( functions, parameters never be outside resource used when it running. )
+    *   - synchronized = to lock the resource ( functions, parameters never be outside resource used when it onRunning. )
     *   - Implements block methods same as iOS' block usage that has 2 theories to do :
     *     - 1). public abstract static class : this called Inner Class
     *     - 2). public interface : this is not Inner Class
     * */
     //Customized block method
-    public abstract static class ProcessBlock
+    private abstract static class SyncListener
     {
         /*
         * @ Notes
-        *   - Command + N -> choose Override ... -> choose running() to be override implementation.
+        *   - Command + N -> choose Override ... -> choose onRunning() to be override implementation.
         * */
         //Optional implementation which likes @optional of iOS delegate.
-        public void running()
+        public void onSync()
         {
             //... Do something
         }
-
-        public abstract void done(Boolean success);
     }
 
-    //Not inner class to implement block method.
-    public interface StatusBlock
+    public interface StatusListener
     {
-        public void finished(Boolean success);
-
+        public void onRunning();
+        public void onFinished(boolean success);
     }
 
-    //Interface and Inner Class both never need achieve " new ".
-    public static ProcessBlock processBlock;
-    public static StatusBlock statusBlock;
+    private static SyncListener mSyncListener;
+    private static StatusListener mStatusListener;
 
+    private static boolean mIsPause      = false;
+
+    //Amount of time in milliseconds before first execution.
     public static long delayInterval     = 0;
     public static long repeatInterval    = 0;
     public static int times              = 0;
 
-    final static Timer _timer            = new Timer();
-    final static Handler _timerHandler   = new Handler();
-    final static Runnable _timerRunnable = new Runnable()
+    private static Timer mTimer          = null;
+    private static TimerTask mTimerTask  = null;
+    final static Handler mTimerHandler   = new Handler();
+    final static Runnable mTimerRunnable = new Runnable()
     {
         @Override
         public void run()
         {
-            //Do something you wanna do.
+            if(times > 999999)
+            {
+                //To avoid the memory leak issue.
+                times = 0;
+            }
             ++times;
-            //System.out.println("times : " + _times);
-            processBlock.running();
 
-            //Unit test to test the stop additions.
-            //_testStopEvent();
+            if( false == mIsPause && null != mStatusListener )
+            {
+                mStatusListener.onRunning();
+            }
         }
     };
 
-    final static TimerTask _timerTask = new TimerTask()
+    private static Runnable mEasyRunnable = new Runnable()
     {
         @Override
-        public void run()
-        {
-            //Same as [NSTimer fire]
-            _timerHandler.post(_timerRunnable);
+        public void run() {
+            if( null != mSyncListener )
+            {
+                mSyncListener.onSync();
+            }
+            mTimerHandler.postDelayed(mEasyRunnable, repeatInterval);
         }
     };
 
-    static void start(ProcessBlock block)
-    {
-        processBlock = block;
-        _timer.schedule(_timerTask, delayInterval, repeatInterval);
-    }
-
-    //__construct without configs
     public KRTimer()
     {
-        //System.out.println("__construct");
-        processBlock   = null;
-        statusBlock    = null;
-        delayInterval  = 0;
-        repeatInterval = 1000;
+        mSyncListener   = null;
+        mStatusListener = null;
+        delayInterval   = 0;
+        repeatInterval  = 1000;
     }
 
-    /*
-    * @ Singleton
-    *   - Design Pattern : http://openhome.cc/Gossip/DesignPattern/SingletonPattern.htm
-    * */
-    //Method 1,
     private static KRTimer singletonTimer = null;
-    //private KRTimer(){}
     public static KRTimer sharedInstance()
     {
         if (singletonTimer == null)
@@ -117,86 +108,118 @@ public class KRTimer
         return singletonTimer;
     }
 
-    /*
-    //Method 2, best simple use in smaller wasting resource class
-    private static KRTimer singletonTimer = new KRTimer();
-    //private KRTimer(){}
-    public static KRTimer sharedInstance()
+    public static void start(StatusListener listener)
     {
-        return singletonTimer;
-    }
-    //*/
+        mIsPause        = false;
+        mStatusListener = null;
 
-    /*
-    //Method 3, use in bigger wasting resource class
-    private static KRTimer singletonTimer;
-    //private KRTimer(){}
-    public static synchronized KRTimer sharedInstance()
-    {
-        if(singletonTimer == null)
+        if ( null == mTimer )
         {
-            singletonTimer = new KRTimer();
+            mTimer = new Timer();
         }
-        return singletonTimer;
-    }
-    //*/
 
-    /*
-    //__construct with configs
-    public KRTimer(StatusBlock block)
-    {
-        statusBlock = block;
-    }
-    */
+        if ( null == mTimerTask )
+        {
+            mTimerTask = new TimerTask()
+            {
+                @Override
+                public void run()
+                {
+                    if( false == mIsPause)
+                    {
+                        mTimerHandler.post(mTimerRunnable);
+                    }
+                }
+            };
+        }
 
-    //If we used static decorate with named function that global variable parameters must be static decoration too.
-    public static void start()
-    {
-        //( TimerTask, delay fire duration, repeat duration )
-        System.out.println("Start Timer");
-        start(processBlock);
+        mStatusListener = listener;
+
+        if( null != mTimer && null != mTimerTask )
+        {
+            //delayInterval = repeatInterval;
+            mTimer.schedule(mTimerTask, delayInterval, repeatInterval);
+        }
+
     }
 
     public static void stop()
     {
-        System.out.println("Stop Timer");
-        times = 0;
-        _timer.cancel();
-
-        if( processBlock != null )
+        if ( null != mTimer )
         {
-            processBlock.done(true);
+            mTimer.cancel();
+            mTimer = null;
         }
 
-        if( statusBlock != null )
+        if ( null != mTimerTask )
         {
-            statusBlock.finished(true);
+            mTimerTask.cancel();
+            mTimerTask = null;
+        }
+
+        mIsPause = true;
+        times    = 0;
+
+        if( mStatusListener != null )
+        {
+            mStatusListener.onFinished(true);
         }
 
     }
 
-    /*
-    //Setter / Getter
-    private String mString;
-    public String getString()
+    public static void refresh(StatusListener listener)
     {
-        return this.mString;
+        stop();
+        start(listener);
     }
 
-    public void setString(String value)
+    /**
+     * Ez serial methods are simulating the Google designed methods to implement the Runnable run in mainUiThread to directly handle simple something.
+     * */
+    public static void ezStart(int startAfterInterval, StatusListener listener)
     {
-        mString = value;
+        if( null != mTimerHandler )
+        {
+            mTimerHandler.postDelayed(mEasyRunnable, startAfterInterval);
+        }
     }
-    */
+
+    public static void ezRefresh(int startAfterInterval, StatusListener listener)
+    {
+        ezStop();
+        if( null != mTimerHandler )
+        {
+            mTimerHandler.postDelayed(mEasyRunnable, startAfterInterval);
+        }
+    }
+
+    public static void ezStop()
+    {
+        if( null != mTimerHandler )
+        {
+            mTimerHandler.removeCallbacks(mTimerRunnable);
+        }
+    }
+
+    public static void setSyncListener(SyncListener listener)
+    {
+        mSyncListener = listener;
+    }
+
+    public static void setStatusListener(StatusListener listener)
+    {
+        mStatusListener = listener;
+    }
 
     /**
      * @ Unit Test
      * */
-    public static void testStopEvent()
+    public static void testStop()
     {
         if( times > 5 )
         {
             stop();
         }
     }
+
 }
